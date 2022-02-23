@@ -1,9 +1,9 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { fabric } from "fabric";
 import styled from "styled-components";
 
 function App() {
-  // useEffect(() => {});
+  useEffect(() => {});
 
   const initCanvas = (id) => {
     return new fabric.Canvas(id, {
@@ -74,6 +74,8 @@ const Canvas = styled.div`
 
   canvas {
     border: 1px solid wheat;
+    width: 400px;
+    height: 400px;
     cursor: all-scroll;
   }
 `;
