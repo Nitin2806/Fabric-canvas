@@ -3,41 +3,15 @@ import { fabric } from "fabric";
 import styled from "styled-components";
 
 function App() {
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedImage, setSelectedImage] = useState();
 
   useEffect(() => {
     // setBackground(
     //   "https://cdn.pixabay.com/photo/2017/03/17/19/37/sky-2152463_960_720.jpg",
     //   canvas
     // );
-
-    canvas.on("mouse:wheel", function (opt) {
-      var delta = opt.e.deltaY;
-      var zoom = canvas.getZoom();
-      zoom *= 0.999 ** delta;
-      if (zoom > 20) zoom = 20;
-      if (zoom < 0.01) zoom = 0.01;
-      canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
-      opt.e.preventDefault();
-      opt.e.stopPropagation();
-      var vpt = this.viewportTransform;
-      if (zoom < 400 / 1000) {
-        vpt[4] = 200 - (1000 * zoom) / 2;
-        vpt[5] = 200 - (1000 * zoom) / 2;
-      } else {
-        if (vpt[4] >= 0) {
-          vpt[4] = 0;
-        } else if (vpt[4] < canvas.getWidth() - 1000 * zoom) {
-          vpt[4] = canvas.getWidth() - 1000 * zoom;
-        }
-        if (vpt[5] >= 0) {
-          vpt[5] = 0;
-        } else if (vpt[5] < canvas.getHeight() - 1000 * zoom) {
-          vpt[5] = canvas.getHeight() - 1000 * zoom;
-        }
-      }
-    });
   }, []);
+  const reader = new FileReader();
 
   const initCanvas = (id) => {
     return new fabric.Canvas(id, {
@@ -47,42 +21,78 @@ function App() {
   };
 
   const setBackground = (url, canvas) => {
-    console.log(URL.createObjectURL(url));
-
     fabric.Image.fromURL(url, (img) => {
       canvas.backgroundImage = img;
+
       canvas.renderAll();
     });
   };
 
   const canvas = initCanvas("canvas");
-
+  canvas.on("mouse:wheel", function (opt) {
+    var delta = opt.e.deltaY;
+    var zoom = canvas.getZoom();
+    zoom *= 0.999 ** delta;
+    if (zoom > 20) zoom = 20;
+    if (zoom < 0.01) zoom = 0.01;
+    canvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
+    opt.e.preventDefault();
+    opt.e.stopPropagation();
+    var vpt = this.viewportTransform;
+    if (zoom < 400 / 1000) {
+      vpt[4] = 200 - (1000 * zoom) / 2;
+      vpt[5] = 200 - (1000 * zoom) / 2;
+    } else {
+      if (vpt[4] >= 0) {
+        vpt[4] = 0;
+      } else if (vpt[4] < canvas.getWidth() - 1000 * zoom) {
+        vpt[4] = canvas.getWidth() - 1000 * zoom;
+      }
+      if (vpt[5] >= 0) {
+        vpt[5] = 0;
+      } else if (vpt[5] < canvas.getHeight() - 1000 * zoom) {
+        vpt[5] = canvas.getHeight() - 1000 * zoom;
+      }
+    }
+  });
   const imageChange = (e) => {
     if (e.target.files && e.target.files.length > 0) {
       setSelectedImage(e.target.files[0]);
+      // console.log(URL.createObjectURL(url));
     }
   };
-  console.log(selectedImage);
 
-  // This function will be triggered when the "Remove This Image" button is clicked
   const removeSelectedImage = () => {
     setSelectedImage();
   };
+
+  // console.log(selectedImage);
+
+  reader.addEventListener(
+    "load",
+    function () {
+      fabric.Image.fromURL(reader.result, (img) => {
+        canvas.add(img);
+        canvas.requestRenderAll();
+      });
+
+      // convert image file to base64 string
+      // console.log(reader.result);
+    },
+    false
+  );
+
+  if (selectedImage) {
+    reader.readAsDataURL(selectedImage);
+  }
 
   return (
     <Container>
       <Canvas>
         <canvas id="canvas" />
         <Image>
-          <Button
-            type="file"
-            accept="image/*"
-            onChange={imageChange}
-            // onChange={(event) => {
-            //   setSelectedImage(event.target.files[0]);
-            // }}
-          />
-          <button
+          <Button type="file" accept="image/*" onChange={imageChange} />
+          {/* <button
             style={{
               background: "green",
               border: "none",
@@ -92,18 +102,20 @@ function App() {
               borderRadius: "5px",
               color: "white",
             }}
-            onClick={() => {
-              setBackground(selectedImage, canvas);
-            }}
+            // onClick={() => {
+            //   setBackground(selectedImage, canvas);
+            // }}
           >
             Upload!
-          </button>
+          </button> */}
           <button
             onClick={removeSelectedImage}
             style={{
               background: "red",
               border: "none",
               padding: "10px",
+              margin: "10px 0",
+
               width: "100px",
               borderRadius: "5px",
               color: "white",
